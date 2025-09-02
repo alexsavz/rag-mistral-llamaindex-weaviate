@@ -1,0 +1,10 @@
+llama-index==0.10.59
+llama-index-llms-mistralai==0.2.4
+llama-index-embeddings-mistralai==0.1.7
+llama-index-vector-stores-weaviate==0.1.9
+weaviate-client==4.6.3
+python-dotenv==1.0.1
+pydantic==2.8.2
+pdfminer.six==20231228
+pypdf==4.3.1
+tqdm==4.66.5
