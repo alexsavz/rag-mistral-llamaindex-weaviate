@@ -2,11 +2,12 @@
 .venv/
 __pycache__/
 *.pyc
-
+.protorag/
+protorag/
 # Environnement & data
 .env
 data/
 !data/README.md
-
+requirements.txt
 # VS Code
 .vscode/
