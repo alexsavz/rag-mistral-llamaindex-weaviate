@@ -9,8 +9,7 @@
 #renvoyer la liste des sources (titre + page + chemin).
 
 from llama_index.core import VectorStoreIndex
-from llama_index.core.response.notebook_utils import display_response
-from .bootstrap import bootstrap
+from .bootstrap import bootstrap, close_client
 
 def make_query_engine():
     client, vector_store = bootstrap()
@@ -21,19 +20,26 @@ def make_query_engine():
     )
 
 def ask(query: str):
-    qe = make_query_engine()
-    response = qe.query(query)
+    client, qe = make_query_engine()
+    try:
+        response = qe.query(query)
+        print("\n=== RÉPONSE ===\n")
+        # Gestion cas vide :
+        txt = (str(response) or "").strip()
+        print(txt if txt else "[Aucune réponse exploitable. Vérifie l’ingestion et/ou les sources.]")
 
-    # Affichage console + citations
-    print("\n=== RÉPONSE ===\n")
-    print(str(response))
-    print("\n=== SOURCES ===\n")
-    for i, s in enumerate(response.source_nodes, start=1):
-        md = s.metadata or {}
-        title = md.get("title", "Document")
-        page = md.get("page", "?")
-        source = md.get("source", "")
-        print(f"[{i}] {title} (page {page}) - {source}")
+        print("\n=== SOURCES ===\n")
+        if getattr(response, "source_nodes", None):
+            for i, s in enumerate(response.source_nodes, start=1):
+                md = s.metadata or {}
+                title = md.get("title", "Document")
+                page = md.get("page", "?")
+                source = md.get("source", "")
+                print(f"[{i}] {title} (page {page}) - {source}")
+        else:
+            print("[Aucune source renvoyée]")
+    finally:
+        close_client(client)
 
 if __name__ == "__main__":
     # Exemple de question ciblée

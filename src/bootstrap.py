@@ -14,19 +14,25 @@ from .settings import (
 )
 
 def get_weaviate_client() -> weaviate.WeaviateClient:
-    # Auth optional en local
     if WEAVIATE_API_KEY:
         client = weaviate.connect_to_weaviate_cloud(
             cluster_url=WEAVIATE_URL, auth_credentials=weaviate.auth.AuthApiKey(WEAVIATE_API_KEY)
         )
     else:
-        client = weaviate.connect_to_local(host=WEAVIATE_URL.replace("http://","").replace("https://","").split(":")[0],
-                                           port=int(WEAVIATE_URL.split(":")[-1]))
+        # v4: helper local (host/port auto)
+        client = weaviate.connect_to_local()
     return client
 
+def close_client(client: weaviate.WeaviateClient):
+    try:
+        client.close()
+    except Exception:
+        pass
+
 def ensure_weaviate_schema(client: weaviate.WeaviateClient, class_name: str):
-    schema = client.collections.list_all()
-    if class_name in schema:
+    # v4: list_all() renvoie des objets; on extrait les noms
+    existing = [c.name for c in client.collections.list_all()]
+    if class_name in existing:
         return
     client.collections.create(
         name=class_name,
@@ -40,9 +46,7 @@ def ensure_weaviate_schema(client: weaviate.WeaviateClient, class_name: str):
     )
 
 def configure_llamaindex():
-    # LLM pour la génération
     llm = MistralAI(api_key=MISTRAL_API_KEY, model=MISTRAL_LLM_MODEL, temperature=0.1)
-    # Embeddings pour indexation & retrieval
     embed_model = MistralAIEmbedding(api_key=MISTRAL_API_KEY, model_name=MISTRAL_EMBED_MODEL)
     Settings.llm = llm
     Settings.embed_model = embed_model
@@ -54,7 +58,6 @@ def get_vector_store(client: weaviate.WeaviateClient) -> WeaviateVectorStore:
         weaviate_client=client,
         index_name=WEAVIATE_CLASS,
         text_key="chunk",
-        # Les vectors sont fournis par LlamaIndex/Mistral embeddings
     )
 
 def bootstrap():
@@ -62,3 +65,4 @@ def bootstrap():
     client = get_weaviate_client()
     ensure_weaviate_schema(client, WEAVIATE_CLASS)
     return client, get_vector_store(client)
+
