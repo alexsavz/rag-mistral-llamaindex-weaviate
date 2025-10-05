@@ -3,7 +3,11 @@
 __pycache__/
 *.pyc
 .protorag/
+<<<<<<< HEAD
 protorag/
+=======
+
+>>>>>>> 27d618750b01ec5bcd8153ee95249507b24fdd50
 # Environnement & data
 .env
 data/
