@@ -1,3 +1,6 @@
+## Installer les dépendances
+pip install -r requirements.txt
+
 ## Lancer Weaviate en local (Docker)
 docker compose up -d
 
